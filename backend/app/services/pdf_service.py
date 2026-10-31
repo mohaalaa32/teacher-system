@@ -180,3 +180,4 @@ def inspect_and_extract_pdf(file_bytes: bytes, filename: str) -> Dict[str, Any]:
         "extractionStatus": extraction_status,
         "pages": pages_result,
     }
+

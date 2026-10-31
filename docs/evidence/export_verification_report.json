@@ -1,0 +1,66 @@
+{
+  "docx": {
+    "file": "docs/evidence/sample_exports/sample_daily_plan.docx",
+    "sizeBytes": 4649,
+    "sha256": "cba7e0247a279a169edff741b65187c1e087ca2746105ad0b22c76368bdf8a87",
+    "verification": {
+      "passed": true,
+      "format": "OOXML_DOCX",
+      "paragraphsOrRunsCount": 112,
+      "tablesCount": 3,
+      "sha256": "cba7e0247a279a169edff741b65187c1e087ca2746105ad0b22c76368bdf8a87",
+      "sampleText": "درس تجريبي أ | المادة: الرياضيات | الصف/المرحلة: الصف الأول المتوسط | البلد: العراق | المنهج: منهج الرياضيات للمرحلة المتوسطة (سجل تجريبي) | اللغة: ar | السنة: غير مدخلة | الطبعة: غير مدخلة | حالة الإصدار (v1): مسودة غير معتمدة (needs_revision) — لا تحمل ختم اعتماد رسمي | حالة المصدر: unverified_draft | مثال توضيحي غير موثق من الكتاب"
+    }
+  },
+  "pdf": {
+    "file": "docs/evidence/sample_exports/sample_daily_plan.pdf",
+    "sizeBytes": 10314,
+    "sha256": "a65c06b6d5e5430c1b8b86c20c7def13eed1e3eeaf4d27f44a31c8fb7a99ded2",
+    "verification": {
+      "passed": true,
+      "format": "PDF_1_7",
+      "hasSelectableTextStream": true,
+      "sha256": "a65c06b6d5e5430c1b8b86c20c7def13eed1e3eeaf4d27f44a31c8fb7a99ded2"
+    }
+  },
+  "pptx": {
+    "file": "docs/evidence/sample_exports/sample_presentation.pptx",
+    "sizeBytes": 10667,
+    "sha256": "0cbf8729bd0c03c60934add4f6ed0eeba570144634ff6a3b464554922ce50f91",
+    "verification": {
+      "passed": true,
+      "format": "OOXML_PPTX",
+      "slidesCount": 5,
+      "editableTextElementsCount": 18,
+      "sha256": "0cbf8729bd0c03c60934add4f6ed0eeba570144634ff6a3b464554922ce50f91"
+    }
+  },
+  "report_pdf": {
+    "file": "docs/evidence/sample_exports/sample_planning_report.pdf",
+    "sizeBytes": 5342,
+    "sha256": "7cc7f957082545448f7c5cebcf001226dc288c17ea141ccae3ad5c847ca6ec9a",
+    "verification": {
+      "passed": true,
+      "format": "PDF_1_7",
+      "hasSelectableTextStream": true,
+      "sha256": "7cc7f957082545448f7c5cebcf001226dc288c17ea141ccae3ad5c847ca6ec9a"
+    }
+  },
+  "bundle_zip": {
+    "file": "docs/evidence/sample_exports/sample_full_bundle.zip",
+    "sizeBytes": 18317,
+    "sha256": "e49889ff5c917945c2c440afd1e963d55d670a757f6e311c227ed69976a828bf",
+    "verification": {
+      "passed": true,
+      "format": "BUNDLE_ZIP",
+      "files": [
+        "1_daily_plan_editable.docx",
+        "2_daily_plan_printable.pdf",
+        "3_presentation_slides_editable.pptx",
+        "4_planning_completion_report.pdf",
+        "5_curriculum_source_metadata.json"
+      ],
+      "sha256": "e49889ff5c917945c2c440afd1e963d55d670a757f6e311c227ed69976a828bf"
+    }
+  }
+}

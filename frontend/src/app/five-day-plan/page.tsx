@@ -217,7 +217,7 @@ export default function FiveDayPlanPage() {
                   border: "1px solid var(--border-color)",
                   backgroundColor: "#fbfcfb",
                   display: "grid",
-                  gridTemplateColumns: "110px 1.2fr 1.2fr 1.2fr 130px",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
                   gap: "12px",
                   alignItems: "center",
                 }}

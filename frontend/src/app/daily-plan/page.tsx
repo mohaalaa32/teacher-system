@@ -65,7 +65,7 @@ export default function DailyPlanPage() {
       setLessons(lRes.items || []);
       setTemplates(tRes.items || []);
 
-      const targetId = keepPlanId || selectedPlanId || (pList[0] && pList[0].id) || "";
+      const targetId = keepPlanId || selectedPlanId || "pln_daily_demo_a";
       const found = pList.find((x: any) => x.id === targetId) || pList[0];
       if (found) {
         bindPlanToForm(found);

@@ -81,7 +81,7 @@ export default function ReportsPage() {
         className="card"
         style={{
           display: "grid",
-          gridTemplateColumns: "1fr 1fr 1fr auto",
+          gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))",
           gap: "12px",
           alignItems: "end",
           padding: "16px",

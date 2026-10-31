@@ -1,0 +1,342 @@
+[
+  {
+    "route": "/",
+    "screenshot": "docs/evidence/screenshots/01_dashboard_desktop_1440x900.png",
+    "viewport": "1440x900",
+    "innerWidth": 1440,
+    "scrollWidth": 1440,
+    "hasHorizontalOverflow": false,
+    "dir": "rtl",
+    "lang": "ar"
+  },
+  {
+    "route": "/",
+    "screenshot": "docs/evidence/screenshots/01_dashboard_tablet_768x1024.png",
+    "viewport": "768x1024",
+    "innerWidth": 768,
+    "scrollWidth": 768,
+    "hasHorizontalOverflow": false,
+    "dir": "rtl",
+    "lang": "ar"
+  },
+  {
+    "route": "/",
+    "screenshot": "docs/evidence/screenshots/01_dashboard_mobile_390x844.png",
+    "viewport": "390x844",
+    "innerWidth": 390,
+    "scrollWidth": 390,
+    "hasHorizontalOverflow": false,
+    "dir": "rtl",
+    "lang": "ar"
+  },
+  {
+    "route": "/",
+    "screenshot": "docs/evidence/screenshots/01_dashboard_overflow_320x800.png",
+    "viewport": "320x800",
+    "innerWidth": 320,
+    "scrollWidth": 320,
+    "hasHorizontalOverflow": false,
+    "dir": "rtl",
+    "lang": "ar"
+  },
+  {
+    "route": "/curriculum",
+    "screenshot": "docs/evidence/screenshots/02_curriculum_desktop_1440x900.png",
+    "viewport": "1440x900",
+    "innerWidth": 1440,
+    "scrollWidth": 1440,
+    "hasHorizontalOverflow": false,
+    "dir": "rtl",
+    "lang": "ar"
+  },
+  {
+    "route": "/curriculum",
+    "screenshot": "docs/evidence/screenshots/02_curriculum_mobile_390x844.png",
+    "viewport": "390x844",
+    "innerWidth": 390,
+    "scrollWidth": 390,
+    "hasHorizontalOverflow": false,
+    "dir": "rtl",
+    "lang": "ar"
+  },
+  {
+    "route": "/lessons",
+    "screenshot": "docs/evidence/screenshots/03_lessons_desktop_1440x900.png",
+    "viewport": "1440x900",
+    "innerWidth": 1440,
+    "scrollWidth": 1440,
+    "hasHorizontalOverflow": false,
+    "dir": "rtl",
+    "lang": "ar"
+  },
+  {
+    "route": "/lessons",
+    "screenshot": "docs/evidence/screenshots/03_lessons_mobile_390x844.png",
+    "viewport": "390x844",
+    "innerWidth": 390,
+    "scrollWidth": 390,
+    "hasHorizontalOverflow": false,
+    "dir": "rtl",
+    "lang": "ar"
+  },
+  {
+    "route": "/tools",
+    "screenshot": "docs/evidence/screenshots/04_tools_desktop_1440x900.png",
+    "viewport": "1440x900",
+    "innerWidth": 1440,
+    "scrollWidth": 1440,
+    "hasHorizontalOverflow": false,
+    "dir": "rtl",
+    "lang": "ar"
+  },
+  {
+    "route": "/tools",
+    "screenshot": "docs/evidence/screenshots/04_tools_mobile_390x844.png",
+    "viewport": "390x844",
+    "innerWidth": 390,
+    "scrollWidth": 390,
+    "hasHorizontalOverflow": false,
+    "dir": "rtl",
+    "lang": "ar"
+  },
+  {
+    "route": "/settings",
+    "screenshot": "docs/evidence/screenshots/05_settings_desktop_1440x900.png",
+    "viewport": "1440x900",
+    "innerWidth": 1440,
+    "scrollWidth": 1440,
+    "hasHorizontalOverflow": false,
+    "dir": "rtl",
+    "lang": "ar"
+  },
+  {
+    "route": "/settings",
+    "screenshot": "docs/evidence/screenshots/05_settings_mobile_390x844.png",
+    "viewport": "390x844",
+    "innerWidth": 390,
+    "scrollWidth": 390,
+    "hasHorizontalOverflow": false,
+    "dir": "rtl",
+    "lang": "ar"
+  },
+  {
+    "route": "/daily-plan",
+    "screenshot": "docs/evidence/screenshots/06_daily_plan_desktop_1440x900.png",
+    "viewport": "1440x900",
+    "innerWidth": 1440,
+    "scrollWidth": 1440,
+    "hasHorizontalOverflow": false,
+    "dir": "rtl",
+    "lang": "ar"
+  },
+  {
+    "route": "/daily-plan",
+    "screenshot": "docs/evidence/screenshots/06_daily_plan_tablet_768x1024.png",
+    "viewport": "768x1024",
+    "innerWidth": 768,
+    "scrollWidth": 768,
+    "hasHorizontalOverflow": false,
+    "dir": "rtl",
+    "lang": "ar"
+  },
+  {
+    "route": "/daily-plan",
+    "screenshot": "docs/evidence/screenshots/06_daily_plan_mobile_390x844.png",
+    "viewport": "390x844",
+    "innerWidth": 390,
+    "scrollWidth": 390,
+    "hasHorizontalOverflow": false,
+    "dir": "rtl",
+    "lang": "ar"
+  },
+  {
+    "route": "/daily-plan",
+    "screenshot": "docs/evidence/screenshots/06_daily_plan_overflow_320x800.png",
+    "viewport": "320x800",
+    "innerWidth": 320,
+    "scrollWidth": 320,
+    "hasHorizontalOverflow": false,
+    "dir": "rtl",
+    "lang": "ar"
+  },
+  {
+    "route": "/weekly-plan",
+    "screenshot": "docs/evidence/screenshots/07_weekly_plan_desktop_1440x900.png",
+    "viewport": "1440x900",
+    "innerWidth": 1440,
+    "scrollWidth": 1440,
+    "hasHorizontalOverflow": false,
+    "dir": "rtl",
+    "lang": "ar"
+  },
+  {
+    "route": "/weekly-plan",
+    "screenshot": "docs/evidence/screenshots/07_weekly_plan_mobile_390x844.png",
+    "viewport": "390x844",
+    "innerWidth": 390,
+    "scrollWidth": 390,
+    "hasHorizontalOverflow": false,
+    "dir": "rtl",
+    "lang": "ar"
+  },
+  {
+    "route": "/five-day-plan",
+    "screenshot": "docs/evidence/screenshots/08_five_day_plan_desktop_1440x900.png",
+    "viewport": "1440x900",
+    "innerWidth": 1440,
+    "scrollWidth": 1440,
+    "hasHorizontalOverflow": false,
+    "dir": "rtl",
+    "lang": "ar"
+  },
+  {
+    "route": "/five-day-plan",
+    "screenshot": "docs/evidence/screenshots/08_five_day_plan_mobile_390x844.png",
+    "viewport": "390x844",
+    "innerWidth": 390,
+    "scrollWidth": 390,
+    "hasHorizontalOverflow": false,
+    "dir": "rtl",
+    "lang": "ar"
+  },
+  {
+    "route": "/review",
+    "screenshot": "docs/evidence/screenshots/09_review_desktop_1440x900.png",
+    "viewport": "1440x900",
+    "innerWidth": 1440,
+    "scrollWidth": 1440,
+    "hasHorizontalOverflow": false,
+    "dir": "rtl",
+    "lang": "ar"
+  },
+  {
+    "route": "/review",
+    "screenshot": "docs/evidence/screenshots/09_review_tablet_768x1024.png",
+    "viewport": "768x1024",
+    "innerWidth": 768,
+    "scrollWidth": 768,
+    "hasHorizontalOverflow": false,
+    "dir": "rtl",
+    "lang": "ar"
+  },
+  {
+    "route": "/review",
+    "screenshot": "docs/evidence/screenshots/09_review_mobile_390x844.png",
+    "viewport": "390x844",
+    "innerWidth": 390,
+    "scrollWidth": 390,
+    "hasHorizontalOverflow": false,
+    "dir": "rtl",
+    "lang": "ar"
+  },
+  {
+    "route": "/review",
+    "screenshot": "docs/evidence/screenshots/09_review_overflow_320x800.png",
+    "viewport": "320x800",
+    "innerWidth": 320,
+    "scrollWidth": 320,
+    "hasHorizontalOverflow": false,
+    "dir": "rtl",
+    "lang": "ar"
+  },
+  {
+    "route": "/reports",
+    "screenshot": "docs/evidence/screenshots/10_reports_desktop_1440x900.png",
+    "viewport": "1440x900",
+    "innerWidth": 1440,
+    "scrollWidth": 1440,
+    "hasHorizontalOverflow": false,
+    "dir": "rtl",
+    "lang": "ar"
+  },
+  {
+    "route": "/reports",
+    "screenshot": "docs/evidence/screenshots/10_reports_mobile_390x844.png",
+    "viewport": "390x844",
+    "innerWidth": 390,
+    "scrollWidth": 390,
+    "hasHorizontalOverflow": false,
+    "dir": "rtl",
+    "lang": "ar"
+  },
+  {
+    "route": "/presentations",
+    "screenshot": "docs/evidence/screenshots/11_presentations_desktop_1440x900.png",
+    "viewport": "1440x900",
+    "innerWidth": 1440,
+    "scrollWidth": 1440,
+    "hasHorizontalOverflow": false,
+    "dir": "rtl",
+    "lang": "ar"
+  },
+  {
+    "route": "/presentations",
+    "screenshot": "docs/evidence/screenshots/11_presentations_tablet_768x1024.png",
+    "viewport": "768x1024",
+    "innerWidth": 768,
+    "scrollWidth": 768,
+    "hasHorizontalOverflow": false,
+    "dir": "rtl",
+    "lang": "ar"
+  },
+  {
+    "route": "/presentations",
+    "screenshot": "docs/evidence/screenshots/11_presentations_mobile_390x844.png",
+    "viewport": "390x844",
+    "innerWidth": 390,
+    "scrollWidth": 390,
+    "hasHorizontalOverflow": false,
+    "dir": "rtl",
+    "lang": "ar"
+  },
+  {
+    "route": "/presentations",
+    "screenshot": "docs/evidence/screenshots/11_presentations_overflow_320x800.png",
+    "viewport": "320x800",
+    "innerWidth": 320,
+    "scrollWidth": 320,
+    "hasHorizontalOverflow": false,
+    "dir": "rtl",
+    "lang": "ar"
+  },
+  {
+    "route": "/sources",
+    "screenshot": "docs/evidence/screenshots/12_sources_desktop_1440x900.png",
+    "viewport": "1440x900",
+    "innerWidth": 1440,
+    "scrollWidth": 1440,
+    "hasHorizontalOverflow": false,
+    "dir": "rtl",
+    "lang": "ar"
+  },
+  {
+    "route": "/sources",
+    "screenshot": "docs/evidence/screenshots/12_sources_mobile_390x844.png",
+    "viewport": "390x844",
+    "innerWidth": 390,
+    "scrollWidth": 390,
+    "hasHorizontalOverflow": false,
+    "dir": "rtl",
+    "lang": "ar"
+  },
+  {
+    "route": "/export-package",
+    "screenshot": "docs/evidence/screenshots/13_export_package_desktop_1440x900.png",
+    "viewport": "1440x900",
+    "innerWidth": 1440,
+    "scrollWidth": 1440,
+    "hasHorizontalOverflow": false,
+    "dir": "rtl",
+    "lang": "ar"
+  },
+  {
+    "route": "/export-package",
+    "screenshot": "docs/evidence/screenshots/13_export_package_mobile_390x844.png",
+    "viewport": "390x844",
+    "innerWidth": 390,
+    "scrollWidth": 390,
+    "hasHorizontalOverflow": false,
+    "dir": "rtl",
+    "lang": "ar"
+  }
+]

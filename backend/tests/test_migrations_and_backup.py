@@ -17,3 +17,4 @@ def test_backup_creation():
         res = create_database_backup_json(b_path)
         assert os.path.isfile(b_path)
         assert res["backupVersion"] == "1.0"
+

@@ -489,3 +489,4 @@ export function AppShellProvider({ children }: { children: React.ReactNode }) {
     </TeacherAppContext.Provider>
   );
 }
+

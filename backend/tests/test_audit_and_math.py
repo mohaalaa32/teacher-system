@@ -77,3 +77,4 @@ def test_history_and_science_tools():
     )
     assert sci_ok["valid"] is True
     assert "g/100mL" in sci_ok["editableOutput"]
+

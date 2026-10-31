@@ -21,7 +21,7 @@ export default function FinalReviewPage() {
       const res = await apiFetch(`/api/plans?contextId=${encodeURIComponent(activeContextId)}`);
       const list = res.items || [];
       setPlans(list);
-      const targetId = keepId || selectedPlanId || (list[0] && list[0].id) || "";
+      const targetId = keepId || selectedPlanId || "pln_daily_demo_a";
       const found = list.find((p: any) => p.id === targetId) || list[0];
       if (found) {
         setSelectedPlanId(found.id);

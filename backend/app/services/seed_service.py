@@ -670,3 +670,4 @@ def ensure_initial_seed_data(db: Session):
     )
     db.add(plan_lit)
     db.commit()
+
