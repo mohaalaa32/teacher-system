@@ -1,0 +1,31 @@
+# Ignore virtual environments and dependencies
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+node_modules/
+.next/
+out/
+dist/
+build/
+
+# Local databases and runtime storage
+*.db
+*.sqlite
+*.sqlite3
+backend/storage/uploads/*
+backend/storage/exports/*
+!backend/storage/uploads/.gitkeep
+!backend/storage/exports/.gitkeep
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# OS and IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
