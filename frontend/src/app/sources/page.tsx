@@ -13,7 +13,7 @@ export default function SourcesImportPage() {
   const [errorMsg, setErrorMsg] = useState<string>("");
 
   // Metadata Form State matching `استيراد كتاب المنهج.png`
-  const [title, setTitle] = useState<string>("سجل منهج تجريبي");
+  const [title, setTitle] = useState<string>("كتاب المنهج");
   const [bookYear, setBookYear] = useState<string>("");
   const [edition, setEdition] = useState<string>("");
   const [sourceUrl, setSourceUrl] = useState<string>("");
@@ -29,9 +29,12 @@ export default function SourcesImportPage() {
       const list = res.items || [];
       setSources(list);
       const targetId = keepId || selectedSourceId || (list[0] && list[0].id) || "";
-      const found = list.find((s: any) => s.id === targetId) || list[0];
+      const found = list.find((s: any) => s.id === targetId) || (list.length > 0 ? list[0] : null);
       if (found) {
         bindSource(found);
+      } else {
+        setSelectedSourceId("");
+        setTitle(activeContext?.curriculumName || "كتاب المنهج");
       }
     } catch (e) {
       console.error(e);

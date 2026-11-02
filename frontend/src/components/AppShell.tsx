@@ -100,12 +100,12 @@ export function WorkflowStepper({ activeStep }: { activeStep: number }) {
 export function AppShellProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [contexts, setContexts] = useState<EducationalContextItem[]>([]);
-  const [activeContextId, setActiveContextId] = useState<string>("ctx_math_iq_demo");
+  const [activeContextId, setActiveContextId] = useState<string>("");
   const [loadingContext, setLoadingContext] = useState<boolean>(true);
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<boolean>(false);
 
-  // New Context Form State
+  // New Context Form State — Starts 100% clean with NO assumed subject, grade, country, or teacher
   const [newCtxForm, setNewCtxForm] = useState({
     subject: "",
     grade: "",
@@ -120,6 +120,18 @@ export function AppShellProvider({ children }: { children: React.ReactNode }) {
     defaultPeriodMinutes: 45,
   });
 
+  const [savedTeacherName, setSavedTeacherName] = useState<string>("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = window.localStorage.getItem("agy_teacher_name") || "";
+      if (stored) {
+        setSavedTeacherName(stored);
+        setNewCtxForm((prev) => ({ ...prev, teacherName: prev.teacherName || stored }));
+      }
+    }
+  }, []);
+
   const refreshContexts = useCallback(async () => {
     try {
       const res = await fetch("/api/contexts", { cache: "no-store" });
@@ -127,11 +139,16 @@ export function AppShellProvider({ children }: { children: React.ReactNode }) {
         const data = await res.json();
         const list: EducationalContextItem[] = data.items || [];
         setContexts(list);
-        const savedId = typeof window !== "undefined" ? window.localStorage.getItem("agy_active_context_id") : null;
-        if (savedId && list.some((c) => c.id === savedId)) {
-          setActiveContextId(savedId);
-        } else if (list.length > 0 && !list.some((c) => c.id === activeContextId)) {
-          setActiveContextId(list[0].id);
+        if (list.length === 0) {
+          setActiveContextId("");
+          setShowModal(true); // Automatically show first-use onboarding setup
+        } else {
+          const savedId = typeof window !== "undefined" ? window.localStorage.getItem("agy_active_context_id") : null;
+          if (savedId && list.some((c) => c.id === savedId)) {
+            setActiveContextId(savedId);
+          } else {
+            setActiveContextId(list[0].id);
+          }
         }
       }
     } catch (err) {
@@ -139,13 +156,22 @@ export function AppShellProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setLoadingContext(false);
     }
-  }, [activeContextId]);
+  }, []);
 
   useEffect(() => {
     refreshContexts();
   }, [refreshContexts]);
 
-  const activeContext = contexts.find((c) => c.id === activeContextId) || contexts[0] || null;
+  const activeContext = contexts.find((c) => c.id === activeContextId) || (contexts.length > 0 ? contexts[0] : null);
+
+  useEffect(() => {
+    if (activeContext?.teacherName) {
+      setSavedTeacherName(activeContext.teacherName);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("agy_teacher_name", activeContext.teacherName);
+      }
+    }
+  }, [activeContext]);
 
   useEffect(() => {
     if (activeContext && typeof document !== "undefined") {
@@ -195,6 +221,10 @@ export function AppShellProvider({ children }: { children: React.ReactNode }) {
   const handleCreateContext = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      if (typeof window !== "undefined" && newCtxForm.teacherName) {
+        window.localStorage.setItem("agy_teacher_name", newCtxForm.teacherName);
+        setSavedTeacherName(newCtxForm.teacherName);
+      }
       const created = await apiFetch("/api/contexts", {
         method: "POST",
         body: JSON.stringify(newCtxForm),
@@ -238,47 +268,69 @@ export function AppShellProvider({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="context-pill-card">
-            <div className="context-pill-grade">{activeContext?.grade || "صف غير محدد"}</div>
+            <div className="context-pill-grade">{activeContext?.grade || "لم يُحدد سياق بعد"}</div>
             <div className="context-pill-sub">
-              {activeContext?.subject || "مادة غير محددة"} · {activeContext?.country || "بلد غير محدد"}
+              {activeContext ? `${activeContext.subject} · ${activeContext.country}` : "أي مادة · أي صف · أي بلد"}
             </div>
             <div style={{ marginTop: "8px", display: "flex", gap: "6px" }}>
-              <select
-                aria-label="تبديل السياق التعليمي"
-                value={activeContext?.id || ""}
-                onChange={(e) => switchContext(e.target.value)}
-                style={{
-                  width: "100%",
-                  background: "rgba(0,0,0,0.22)",
-                  color: "#fff",
-                  border: "1px solid rgba(255,255,255,0.2)",
-                  borderRadius: "6px",
-                  padding: "5px 8px",
-                  fontSize: "0.78rem",
-                }}
-              >
-                {contexts.map((c) => (
-                  <option key={c.id} value={c.id} style={{ color: "#111" }}>
-                    {c.subject || "بدون مادة"} — {c.grade || "بدون صف"} ({c.country || "—"})
-                  </option>
-                ))}
-              </select>
-              <button
-                type="button"
-                onClick={() => setShowModal(true)}
-                title="إضافة سياق تعليمي جديد"
-                style={{
-                  background: "#226650",
-                  color: "#fff",
-                  border: "1px solid rgba(255,255,255,0.25)",
-                  borderRadius: "6px",
-                  padding: "4px 9px",
-                  cursor: "pointer",
-                  fontWeight: 700,
-                }}
-              >
-                +
-              </button>
+              {contexts.length > 0 ? (
+                <select
+                  aria-label="تبديل السياق التعليمي"
+                  value={activeContext?.id || ""}
+                  onChange={(e) => switchContext(e.target.value)}
+                  style={{
+                    width: "100%",
+                    background: "rgba(0,0,0,0.22)",
+                    color: "#fff",
+                    border: "1px solid rgba(255,255,255,0.2)",
+                    borderRadius: "6px",
+                    padding: "5px 8px",
+                    fontSize: "0.78rem",
+                  }}
+                >
+                  {contexts.map((c) => (
+                    <option key={c.id} value={c.id} style={{ color: "#111" }}>
+                      {c.subject || "بدون مادة"} — {c.grade || "بدون صف"} ({c.country || "—"})
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowModal(true)}
+                  style={{
+                    width: "100%",
+                    background: "#226650",
+                    color: "#fff",
+                    border: "1px solid rgba(255,255,255,0.25)",
+                    borderRadius: "6px",
+                    padding: "6px 10px",
+                    cursor: "pointer",
+                    fontSize: "0.8rem",
+                    fontWeight: 700,
+                  }}
+                >
+                  + إعداد سياقك التعليمي
+                </button>
+              )}
+              {contexts.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setShowModal(true)}
+                  title="إضافة سياق تعليمي جديد"
+                  style={{
+                    background: "#226650",
+                    color: "#fff",
+                    border: "1px solid rgba(255,255,255,0.25)",
+                    borderRadius: "6px",
+                    padding: "4px 9px",
+                    cursor: "pointer",
+                    fontWeight: 700,
+                  }}
+                >
+                  +
+                </button>
+              )}
             </div>
           </div>
 
@@ -310,14 +362,33 @@ export function AppShellProvider({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="sidebar-source-status">
-            <div style={{ fontWeight: 700, color: "#fff", marginBottom: "2px" }}>المصدر قيد المراجعة</div>
+            <div style={{ fontWeight: 700, color: "#fff", marginBottom: "2px" }}>
+              {activeContext ? "حالة مصدر المنهج" : "تهيئة السياق"}
+            </div>
             <div style={{ color: "var(--sidebar-muted)" }}>
               {activeContext?.edition && activeContext?.year
                 ? `الطبعة: ${activeContext.edition} · السنة: ${activeContext.year}`
-                : "السجل التجريبي غير موثّق؛ لا يُعدّ كتابًا معتمدًا."}
+                : activeContext
+                ? "بانتظار رفع ملف كتاب المنهج لتوثيقه."
+                : "أدخل بياناتك وسياقك للبدء."}
             </div>
           </div>
         </aside>
+
+        {sidebarOpen && (
+          <div
+            role="presentation"
+            className="sidebar-backdrop"
+            onClick={() => setSidebarOpen(false)}
+            aria-hidden="true"
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0,0,0,0.45)",
+              zIndex: 55,
+            }}
+          />
+        )}
 
         {/* Main Panel */}
         <div className="app-main">
@@ -332,19 +403,44 @@ export function AppShellProvider({ children }: { children: React.ReactNode }) {
                 ☰ القائمة
               </button>
               <span>
-                {activeContext?.subject || "المادة غير محددة"} · {activeContext?.grade || "الصف غير محدد"} ·{" "}
-                {activeContext?.country || "البلد غير محدد"}
+                {activeContext
+                  ? `${activeContext.subject} · ${activeContext.grade} · ${activeContext.country}`
+                  : "لم يتم تحديد سياق بعد — اضغط لإعداد سياقك التعليمي"}
               </span>
               {activeContext?.missingContextFields && activeContext.missingContextFields.length > 0 && (
                 <span className="badge badge-warning" title="الحقول غير المعروفة تُترك فارغة مع تنبيه بدل تخمينها">
                   تنبيه سياق: ينقص ({activeContext.missingContextFields.join("، ")})
                 </span>
               )}
+              {!activeContext && (
+                <button
+                  type="button"
+                  onClick={() => setShowModal(true)}
+                  className="badge badge-success"
+                  style={{ cursor: "pointer", border: "none" }}
+                >
+                  + إعداد سياقك التعليمي
+                </button>
+              )}
             </div>
 
             <div className="top-bar-user">
-              <div className="avatar-circle">أ ع</div>
-              <span>{activeContext?.teacherName || "أحمد علي · معلم تجريبي"}</span>
+              <div className="avatar-circle">
+                {(activeContext?.teacherName || savedTeacherName)?.trim()
+                  ? (activeContext?.teacherName || savedTeacherName).trim().slice(0, 2)
+                  : "👤"}
+              </div>
+              <span style={{ fontWeight: 600 }}>
+                {activeContext?.teacherName || savedTeacherName || (
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(true)}
+                    style={{ background: "none", border: "none", color: "var(--primary-green)", cursor: "pointer", fontWeight: 700 }}
+                  >
+                    أدخل اسمك الكريم
+                  </button>
+                )}
+              </span>
             </div>
           </header>
 
@@ -374,112 +470,133 @@ export function AppShellProvider({ children }: { children: React.ReactNode }) {
             padding: "16px",
           }}
         >
-          <div className="card" style={{ maxWidth: "560px", width: "100%", maxHeight: "90vh", overflowY: "auto" }}>
-            <h2 style={{ marginBottom: "8px", fontSize: "1.2rem" }}>إضافة سياق تعليمي جديد (أي مادة ومنهج وبلد)</h2>
-            <p style={{ fontSize: "0.84rem", color: "var(--text-secondary)", marginBottom: "14px" }}>
-              الحقول غير المعروفة يمكن تركها فارغة وستُعلّم بتنبيه واضح بدل تخمينها.
+          <div className="card" style={{ maxWidth: "580px", width: "100%", maxHeight: "90vh", overflowY: "auto" }}>
+            <h2 style={{ marginBottom: "6px", fontSize: "1.25rem", fontWeight: 800 }}>
+              {contexts.length === 0 ? "مرحبًا بك في مساعد المدرس — إعداد أول استخدام" : "إضافة سياق تعليمي جديد"}
+            </h2>
+            <p style={{ fontSize: "0.84rem", color: "var(--text-secondary)", marginBottom: "16px" }}>
+              {contexts.length === 0
+                ? "أدخل اسمك أولاً وأنشئ سياقك التعليمي للبدء فوراً. لا توجد أي مادة أو صف مفروضين مسبقًا."
+                : "أنشئ سياقًا تعليميًا معزولاً لأي مادة ومنهج وصف وبلد مع حفظ إعداداته."}
             </p>
             <form onSubmit={handleCreateContext}>
-              <div className="equal-split-grid">
-                <div className="form-group">
-                  <label className="form-label">المادة (subject)</label>
-                  <input
-                    className="form-input"
-                    placeholder="مثال: التاريخ، الفيزياء، اللغة العربية..."
-                    value={newCtxForm.subject}
-                    onChange={(e) => setNewCtxForm({ ...newCtxForm, subject: e.target.value })}
-                    required
-                  />
+              <div style={{ backgroundColor: "#fbfcfb", padding: "12px", borderRadius: "10px", border: "1px solid var(--border-color)", marginBottom: "14px" }}>
+                <div style={{ fontWeight: 700, fontSize: "0.88rem", marginBottom: "8px", color: "var(--primary-green)" }}>
+                  1. بيانات المعلم والمدرسة
                 </div>
-                <div className="form-group">
-                  <label className="form-label">الصف / المرحلة (grade)</label>
-                  <input
-                    className="form-input"
-                    placeholder="مثال: الثاني المتوسط / العاشر..."
-                    value={newCtxForm.grade}
-                    onChange={(e) => setNewCtxForm({ ...newCtxForm, grade: e.target.value })}
-                    required
-                  />
-                </div>
-              </div>
-              <div className="equal-split-grid">
-                <div className="form-group">
-                  <label className="form-label">البلد (country)</label>
-                  <input
-                    className="form-input"
-                    placeholder="مثال: العراق، الأردن، مصر، السعودية..."
-                    value={newCtxForm.country}
-                    onChange={(e) => setNewCtxForm({ ...newCtxForm, country: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">اسم المنهج (curriculumName)</label>
-                  <input
-                    className="form-input"
-                    placeholder="مثال: المنهج الوطني المطور"
-                    value={newCtxForm.curriculumName}
-                    onChange={(e) => setNewCtxForm({ ...newCtxForm, curriculumName: e.target.value })}
-                  />
+                <div className="equal-split-grid">
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label">اسم المعلم / المعلمة *</label>
+                    <input
+                      className="form-input"
+                      placeholder="مثال: أ. محمد أحمد / د. سارة علي"
+                      value={newCtxForm.teacherName}
+                      onChange={(e) => setNewCtxForm({ ...newCtxForm, teacherName: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label">المدرسة أو الشعبة (اختياري)</label>
+                    <input
+                      className="form-input"
+                      placeholder="مثال: ثانوية الأمل · الشعبة ب"
+                      value={newCtxForm.schoolName}
+                      onChange={(e) => setNewCtxForm({ ...newCtxForm, schoolName: e.target.value })}
+                    />
+                  </div>
                 </div>
               </div>
-              <div className="stats-grid-3">
-                <div className="form-group">
-                  <label className="form-label">لغة السياق (language)</label>
-                  <select
-                    className="form-select"
-                    value={newCtxForm.language}
-                    onChange={(e) => setNewCtxForm({ ...newCtxForm, language: e.target.value })}
-                  >
-                    <option value="ar">العربية (RTL)</option>
-                    <option value="en">English (LTR)</option>
-                    <option value="ku">Kurdî (RTL)</option>
-                    <option value="fr">Français (LTR)</option>
-                  </select>
+
+              <div style={{ backgroundColor: "#fbfcfb", padding: "12px", borderRadius: "10px", border: "1px solid var(--border-color)", marginBottom: "14px" }}>
+                <div style={{ fontWeight: 700, fontSize: "0.88rem", marginBottom: "8px", color: "var(--primary-green)" }}>
+                  2. السياق التعليمي (أدخل بيانات مادتك وصفك)
                 </div>
-                <div className="form-group">
-                  <label className="form-label">السنة (year - اختياري)</label>
-                  <input
-                    className="form-input"
-                    placeholder="تُترك فارغة إن لم تُعرف"
-                    value={newCtxForm.year}
-                    onChange={(e) => setNewCtxForm({ ...newCtxForm, year: e.target.value })}
-                  />
+                <div className="equal-split-grid">
+                  <div className="form-group">
+                    <label className="form-label">المادة (subject) *</label>
+                    <input
+                      className="form-input"
+                      placeholder="مثال: العلوم، التاريخ، الفيزياء، اللغة الإنجليزية..."
+                      value={newCtxForm.subject}
+                      onChange={(e) => setNewCtxForm({ ...newCtxForm, subject: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">الصف / المرحلة (grade) *</label>
+                    <input
+                      className="form-input"
+                      placeholder="مثال: الثالث المتوسط، الأول الثانوي، السادس الابتدائي..."
+                      value={newCtxForm.grade}
+                      onChange={(e) => setNewCtxForm({ ...newCtxForm, grade: e.target.value })}
+                      required
+                    />
+                  </div>
                 </div>
-                <div className="form-group">
-                  <label className="form-label">الطبعة (edition - اختياري)</label>
-                  <input
-                    className="form-input"
-                    placeholder="تُترك فارغة إن لم تُعرف"
-                    value={newCtxForm.edition}
-                    onChange={(e) => setNewCtxForm({ ...newCtxForm, edition: e.target.value })}
-                  />
+                <div className="equal-split-grid">
+                  <div className="form-group">
+                    <label className="form-label">البلد (country) *</label>
+                    <input
+                      className="form-input"
+                      placeholder="مثال: العراق، السعودية، مصر، الأردن..."
+                      value={newCtxForm.country}
+                      onChange={(e) => setNewCtxForm({ ...newCtxForm, country: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">اسم المنهج (curriculumName)</label>
+                    <input
+                      className="form-input"
+                      placeholder="مثال: المنهج الوطني، المقررات الحديثة..."
+                      value={newCtxForm.curriculumName}
+                      onChange={(e) => setNewCtxForm({ ...newCtxForm, curriculumName: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="stats-grid-3">
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label">لغة السياق (language)</label>
+                    <select
+                      className="form-select"
+                      value={newCtxForm.language}
+                      onChange={(e) => setNewCtxForm({ ...newCtxForm, language: e.target.value })}
+                    >
+                      <option value="ar">العربية (RTL)</option>
+                      <option value="en">English (LTR)</option>
+                      <option value="ku">Kurdî (RTL)</option>
+                      <option value="fr">Français (LTR)</option>
+                    </select>
+                  </div>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label">السنة (year - اختياري)</label>
+                    <input
+                      className="form-input"
+                      placeholder="تُترك فارغة إن لم تُعرف"
+                      value={newCtxForm.year}
+                      onChange={(e) => setNewCtxForm({ ...newCtxForm, year: e.target.value })}
+                    />
+                  </div>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label">الطبعة (edition - اختياري)</label>
+                    <input
+                      className="form-input"
+                      placeholder="تُترك فارغة إن لم تُعرف"
+                      value={newCtxForm.edition}
+                      onChange={(e) => setNewCtxForm({ ...newCtxForm, edition: e.target.value })}
+                    />
+                  </div>
                 </div>
               </div>
-              <div className="equal-split-grid">
-                <div className="form-group">
-                  <label className="form-label">اسم المدرس</label>
-                  <input
-                    className="form-input"
-                    value={newCtxForm.teacherName}
-                    onChange={(e) => setNewCtxForm({ ...newCtxForm, teacherName: e.target.value })}
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">المدرسة والشعبة</label>
-                  <input
-                    className="form-input"
-                    value={newCtxForm.schoolName}
-                    onChange={(e) => setNewCtxForm({ ...newCtxForm, schoolName: e.target.value })}
-                  />
-                </div>
-              </div>
-              <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "12px" }}>
-                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
-                  إلغاء
-                </button>
+
+              <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "16px" }}>
+                {contexts.length > 0 && (
+                  <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
+                    إلغاء
+                  </button>
+                )}
                 <button type="submit" className="btn btn-primary">
-                  حفظ وتفعيل السياق
+                  {contexts.length === 0 ? "حفظ وبدء التخطيط ←" : "حفظ وتفعيل السياق"}
                 </button>
               </div>
             </form>

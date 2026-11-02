@@ -10,7 +10,7 @@ export default function PresentationsPage() {
   const [selectedPlanId, setSelectedPlanId] = useState<string>("");
   const [slides, setSlides] = useState<any[]>([]);
   const [activeSlideIdx, setActiveSlideIdx] = useState<number>(2); // Default Slide 3 as in `العروض التقديمية.png`
-  const [presTitle, setPresTitle] = useState<string>("درس تجريبي أ");
+  const [presTitle, setPresTitle] = useState<string>("عرض الدرس");
   const [textDirection, setTextDirection] = useState<string>("rtl");
   const [layoutStyle, setLayoutStyle] = useState<string>("title_and_content");
   const [exporting, setExporting] = useState<boolean>(false);
@@ -22,9 +22,12 @@ export default function PresentationsPage() {
       const list = res.items || [];
       setPlans(list);
       const targetId = keepId || selectedPlanId || (list[0] && list[0].id) || "";
-      const found = list.find((p: any) => p.id === targetId) || list[0];
+      const found = list.find((p: any) => p.id === targetId) || (list.length > 0 ? list[0] : null);
       if (found) {
         bindPlanSlides(found);
+      } else {
+        setSelectedPlanId("");
+        setSlides([]);
       }
     } catch (e) {
       console.error(e);
@@ -38,7 +41,7 @@ export default function PresentationsPage() {
       pln.slides && pln.slides.length > 0
         ? pln.slides
         : [
-            { order: 1, title: pln.title || "درس تجريبي أ", content: `${activeContext?.subject} · ${activeContext?.grade} · ${activeContext?.country}` },
+            { order: 1, title: pln.title || "عرض الدرس", content: `${activeContext?.subject || "المادة"} · ${activeContext?.grade || ""} · ${activeContext?.country || ""}` },
             { order: 2, title: "أهداف الحصة", content: (pln.objectives || []).join("\n") || "أهداف الدرس القابلة للملاحظة والقياس." },
             {
               order: 3,
@@ -139,41 +142,54 @@ export default function PresentationsPage() {
 
       <div className="warning-banner">
         <span>
-          ⚠ معاينة بعد تصحيح التقويم · العرض مرتبط بـ «{currentPlan?.title || "درس تجريبي أ"}»، ومصدر المنهج يُوسم بحسب حالة توثيقه.
+          ⚠ العرض مرتبط بـ «{currentPlan?.title || "الخطة المحددة"}»، ومصدر المنهج يُوسم بحسب حالة توثيقه.
         </span>
       </div>
 
-      {/* Top Action Bar matching `العروض التقديمية.png` */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px", marginBottom: "16px" }}>
-        <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
-          <button type="button" className="btn btn-primary" disabled={exporting} onClick={handleExportPptx}>
-            🖥 {exporting ? "جارٍ تجهيز ملف PPTX..." : "إعداد وتنزيل عرض PPTX قابل للتحرير"}
-          </button>
-          <button type="button" className="btn btn-secondary" onClick={handleSaveSlidesToPlan}>
-            ↻ تحديث وحفظ المعاينة
-          </button>
-          <span className="badge badge-success">{slides.length} شرائح · معاينة حية</span>
+      {plans.length === 0 ? (
+        <div className="card" style={{ textAlign: "center", padding: "44px 16px" }}>
+          <div style={{ fontSize: "2rem", marginBottom: "8px" }}>🖥</div>
+          <h2 style={{ fontSize: "1.25rem", fontWeight: 800, marginBottom: "8px" }}>لا توجد خطط محفوظة بعد لإنشاء عروض تقديمية</h2>
+          <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "16px" }}>
+            أنشئ خطة درس من صفحة الخطة اليومية ليتم توليد شرائح العرض التقديمي القابلة للتحرير تلقائيًا.
+          </p>
+          <Link href="/daily-plan" className="btn btn-primary">
+            + إعداد أول خطة درس
+          </Link>
         </div>
+      ) : (
+        <>
+          {/* Top Action Bar matching `العروض التقديمية.png` */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px", marginBottom: "16px" }}>
+            <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+              <button type="button" className="btn btn-primary" disabled={exporting} onClick={handleExportPptx}>
+                🖥 {exporting ? "جارٍ تجهيز ملف PPTX..." : "إعداد وتنزيل عرض PPTX قابل للتحرير"}
+              </button>
+              <button type="button" className="btn btn-secondary" onClick={handleSaveSlidesToPlan}>
+                ↻ تحديث وحفظ المعاينة
+              </button>
+              <span className="badge badge-success">{slides.length} شرائح · معاينة حية</span>
+            </div>
 
-        <select
-          aria-label="اختيار الخطة للعرض التقديمي"
-          className="form-select"
-          style={{ width: "auto" }}
-          value={selectedPlanId}
-          onChange={(e) => {
-            const found = plans.find((p) => p.id === e.target.value);
-            if (found) bindPlanSlides(found);
-          }}
-        >
-          {plans.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.title} (v{p.version})
-            </option>
-          ))}
-        </select>
-      </div>
+            <select
+              aria-label="اختيار الخطة للعرض التقديمي"
+              className="form-select"
+              style={{ width: "auto" }}
+              value={selectedPlanId}
+              onChange={(e) => {
+                const found = plans.find((p) => p.id === e.target.value);
+                if (found) bindPlanSlides(found);
+              }}
+            >
+              {plans.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.title}
+                </option>
+              ))}
+            </select>
+          </div>
 
-      {feedback && (
+          {feedback && (
         <div className="info-banner" style={{ borderColor: "var(--primary-green)", color: "var(--primary-green)" }}>
           <span>✓ {feedback}</span>
         </div>
@@ -432,6 +448,8 @@ export default function PresentationsPage() {
           حفظ إعدادات العرض
         </button>
       </div>
+        </>
+      )}
     </div>
   );
 }

@@ -171,6 +171,15 @@ export default function LessonsPage() {
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            {lessons.length === 0 && (
+              <div style={{ textAlign: "center", padding: "34px 10px", color: "var(--text-secondary)" }}>
+                <p style={{ marginBottom: "12px", fontSize: "0.9rem" }}>لا توجد دروس مضافة بعد في سياق ({activeContext?.subject || "المادة"}).</p>
+                <button type="button" className="btn btn-primary" onClick={handleCreateNewLesson}>
+                  + أضف أول درس
+                </button>
+              </div>
+            )}
+
             {lessons.map((les) => {
               const isSelected = les.id === selectedLessonId;
               return (
@@ -208,23 +217,32 @@ export default function LessonsPage() {
             أهداف ومعارف سابقة ومعايير تقويم قابلة للتحرير والحفظ الدائم
           </p>
 
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-            <span className="badge badge-warning">
-              {currentLesson?.provenanceLabel || "تجريبي — غير موثّق"}
-            </span>
-            <button type="button" className="btn btn-secondary" onClick={handleDuplicateLesson}>
-              نسخ الدرس
-            </button>
-          </div>
+          {!currentLesson ? (
+            <div style={{ textAlign: "center", padding: "40px 10px", color: "var(--text-secondary)" }}>
+              <p style={{ marginBottom: "12px" }}>أضف درساً جديداً أو اختر درساً من القائمة لتعديل أهدافه ومعارفه السابقة.</p>
+              <button type="button" className="btn btn-primary" onClick={handleCreateNewLesson}>
+                + إضافة درس جديد الآن
+              </button>
+            </div>
+          ) : (
+            <>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+                <span className="badge badge-warning">
+                  {currentLesson.provenanceLabel || "غير موثّق"}
+                </span>
+                <button type="button" className="btn btn-secondary" onClick={handleDuplicateLesson}>
+                  نسخ الدرس
+                </button>
+              </div>
 
-          <div className="form-group">
-            <label className="form-label">عنوان الدرس</label>
-            <input
-              className="form-input"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-          </div>
+              <div className="form-group">
+                <label className="form-label">عنوان الدرس</label>
+                <input
+                  className="form-input"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
+              </div>
 
           <div className="equal-split-grid">
             <div className="form-group">
@@ -298,6 +316,8 @@ export default function LessonsPage() {
           <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "10px" }}>
             هذه الأهداف يحررها المعلم ويكيفها وفق المادة؛ لا تُعرض كنصوص مقتبسة رسميًا إلا بعد توثيق المصدر.
           </div>
+            </>
+          )}
         </div>
       </div>
 

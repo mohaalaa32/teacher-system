@@ -136,19 +136,23 @@ export default function ExportPackagePage() {
               </p>
             </div>
 
-            <select
-              aria-label="اختيار الخطة للتصدير"
-              className="form-select"
-              style={{ width: "auto" }}
-              value={selectedPlanId}
-              onChange={(e) => setSelectedPlanId(e.target.value)}
-            >
-              {plans.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.title} (الإصدار v{p.version})
-                </option>
-              ))}
-            </select>
+            {plans.length > 0 ? (
+              <select
+                aria-label="اختيار الخطة للتصدير"
+                className="form-select"
+                style={{ width: "auto" }}
+                value={selectedPlanId}
+                onChange={(e) => setSelectedPlanId(e.target.value)}
+              >
+                {plans.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.title} (الإصدار v{p.version})
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <span className="badge badge-warning">لا توجد خطة محددة</span>
+            )}
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
@@ -181,7 +185,7 @@ export default function ExportPackagePage() {
                     type="button"
                     className="btn btn-secondary"
                     style={{ padding: "6px 12px", fontSize: "0.8rem" }}
-                    disabled={!!busyFormat}
+                    disabled={!!busyFormat || !currentPlan}
                     onClick={() => handleGenerateExport(item.id)}
                   >
                     {busyFormat === item.id ? "جارٍ التوليد..." : `توليد وتنزيل ${item.badge}`}
@@ -202,7 +206,7 @@ export default function ExportPackagePage() {
             <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "16px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: "0.88rem" }}>{currentPlan?.title || "درس تجريبي أ"}</div>
+                  <div style={{ fontWeight: 700, fontSize: "0.88rem" }}>{currentPlan?.title || "لا توجد خطة محددة"}</div>
                   <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
                     الإصدار v{currentPlan?.version || 1} · {currentPlan?.totalAllocatedMinutes || 45} دقيقة
                   </div>

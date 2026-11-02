@@ -77,33 +77,45 @@ app = FastAPI(
     version="1.0.0",
 )
 
-ALLOWED_ORIGINS = [
-    o.strip()
-    for o in os.getenv(
-        "ALLOWED_ORIGINS",
-        "http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001",
-    ).split(",")
-    if o.strip()
-]
+ALLOWED_ORIGINS_RAW = os.getenv("ALLOWED_ORIGINS", "").strip()
+ALLOW_ALL_ORIGINS = os.getenv("ALLOW_ALL_ORIGINS", "0").lower() in ("1", "true")
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-    expose_headers=["X-Request-ID", "Content-Disposition"],
-)
+if ALLOW_ALL_ORIGINS or ALLOWED_ORIGINS_RAW == "*":
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=False,
+        allow_methods=["*"],
+        allow_headers=["*"],
+        expose_headers=["X-Request-ID", "Content-Disposition"],
+    )
+else:
+    configured_origins = [o.strip() for o in ALLOWED_ORIGINS_RAW.split(",") if o.strip()]
+    default_origins = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3001",
+    ]
+    origins_set = list(dict.fromkeys(default_origins + configured_origins))
+    lan_origin_regex = os.getenv(
+        "CORS_ORIGIN_REGEX",
+        r"^https?://(localhost|127\.0\.0\.1|0\.0\.0\.0|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3})(:\d+)?$",
+    )
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins_set,
+        allow_origin_regex=lan_origin_regex,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+        expose_headers=["X-Request-ID", "Content-Disposition"],
+    )
 
 
 @app.on_event("startup")
 def on_startup():
     Base.metadata.create_all(bind=engine)
-    db = SessionLocal()
-    try:
-        ensure_initial_seed_data(db)
-    finally:
-        db.close()
 
 
 @app.middleware("http")
@@ -378,7 +390,6 @@ def health_check(db: Session = Depends(get_db)):
 
 @app.get("/api/contexts")
 def list_contexts(db: Session = Depends(get_db)):
-    ensure_initial_seed_data(db)
     contexts = db.query(EducationalContext).order_by(EducationalContext.created_at.asc()).all()
     return {"items": [serialize_context(c) for c in contexts]}
 
@@ -969,6 +980,10 @@ def _save_plan_version_and_review(db: Session, pln: Plan, ctx: EducationalContex
         "title": pln.title,
         "planType": pln.plan_type,
         "status": pln.status,
+        "teacherName": pln.teacher_name or (ctx.teacher_name if ctx else ""),
+        "schoolName": pln.school_name or (ctx.school_name if ctx else ""),
+        "sectionName": pln.section_name or (ctx.section_name if ctx else ""),
+        "planningDate": pln.planning_date or (ctx.planning_date if ctx else ""),
         "lessonsCount": pln.lessons_count,
         "periodsCount": pln.periods_count,
         "periodMinutes": pln.period_minutes,
@@ -994,29 +1009,53 @@ def _save_plan_version_and_review(db: Session, pln: Plan, ctx: EducationalContex
     if pln.status != "approved":
         pln.status = audit_res["overallStatus"]
 
-    pver = PlanVersion(
-        plan_id=pln.id,
-        context_id=pln.context_id,
-        version_number=pln.version,
-        status_at_save=pln.status,
-        context_snapshot=pln.context_snapshot or ctx.snapshot_dict(),
-        plan_payload=payload_dict,
-        content_sha256=sha,
-        reviewer_name=pln.teacher_name or ctx.teacher_name,
+    pver = (
+        db.query(PlanVersion)
+        .filter(PlanVersion.plan_id == pln.id, PlanVersion.version_number == pln.version)
+        .first()
     )
-    db.add(pver)
+    if not pver:
+        pver = PlanVersion(
+            plan_id=pln.id,
+            context_id=pln.context_id,
+            version_number=pln.version,
+            status_at_save=pln.status,
+            context_snapshot=pln.context_snapshot or ctx.snapshot_dict(),
+            plan_payload=payload_dict,
+            content_sha256=sha,
+            reviewer_name=pln.teacher_name or ctx.teacher_name,
+        )
+        db.add(pver)
+    else:
+        pver.status_at_save = pln.status
+        pver.context_snapshot = pln.context_snapshot or ctx.snapshot_dict()
+        pver.plan_payload = payload_dict
+        pver.content_sha256 = sha
+        pver.reviewer_name = pln.teacher_name or ctx.teacher_name
 
-    rev = PlanReview(
-        plan_id=pln.id,
-        context_id=pln.context_id,
-        plan_version=pln.version,
-        overall_status=pln.status,
-        blockers_count=audit_res["blockersCount"],
-        warnings_count=audit_res["warningsCount"],
-        passed_count=audit_res["passedCount"],
-        findings=audit_res["findings"],
+    rev = (
+        db.query(PlanReview)
+        .filter(PlanReview.plan_id == pln.id, PlanReview.plan_version == pln.version)
+        .first()
     )
-    db.add(rev)
+    if not rev:
+        rev = PlanReview(
+            plan_id=pln.id,
+            context_id=pln.context_id,
+            plan_version=pln.version,
+            overall_status=pln.status,
+            blockers_count=audit_res["blockersCount"],
+            warnings_count=audit_res["warningsCount"],
+            passed_count=audit_res["passedCount"],
+            findings=audit_res["findings"],
+        )
+        db.add(rev)
+    else:
+        rev.overall_status = pln.status
+        rev.blockers_count = audit_res["blockersCount"]
+        rev.warnings_count = audit_res["warningsCount"]
+        rev.passed_count = audit_res["passedCount"]
+        rev.findings = audit_res["findings"]
     db.flush()
     return rev
 
@@ -1287,8 +1326,15 @@ def approve_plan_version(
         .first()
     )
     if pver:
+        from sqlalchemy.orm.attributes import flag_modified
         pver.status_at_save = "approved"
         pver.context_snapshot = pln.context_snapshot
+        pver_payload = dict(pver.plan_payload or {})
+        pver_payload["status"] = "approved"
+        pver_payload["approvedBy"] = pln.approved_by
+        pver_payload["teacherName"] = pln.teacher_name or ctx.teacher_name
+        pver.plan_payload = pver_payload
+        flag_modified(pver, "plan_payload")
 
     db.commit()
     db.refresh(pln)
@@ -1367,10 +1413,36 @@ def copy_plan_to_another_context(
 # ==============================================================================
 
 @app.get("/api/dashboard")
-def get_dashboard_summary(contextId: str = Query(...), db: Session = Depends(get_db)):
+def get_dashboard_summary(contextId: Optional[str] = Query(None), db: Session = Depends(get_db)):
+    if not contextId:
+        return {
+            "context": None,
+            "stats": {
+                "attentionCount": 0,
+                "draftsCount": 0,
+                "totalPlansCount": 0,
+                "reviewedCount": 0,
+                "exportsCount": 0,
+            },
+            "recentPlans": [],
+            "todayTasks": [],
+            "activityTimeline": [],
+        }
     ctx = db.query(EducationalContext).filter(EducationalContext.id == contextId).first()
     if not ctx:
-        raise HTTPException(status_code=404, detail={"code": "CONTEXT_NOT_FOUND", "message": "السياق غير موجود."})
+        return {
+            "context": None,
+            "stats": {
+                "attentionCount": 0,
+                "draftsCount": 0,
+                "totalPlansCount": 0,
+                "reviewedCount": 0,
+                "exportsCount": 0,
+            },
+            "recentPlans": [],
+            "todayTasks": [],
+            "activityTimeline": [],
+        }
 
     plans = db.query(Plan).filter(Plan.context_id == contextId).order_by(Plan.updated_at.desc()).all()
     sources = db.query(CurriculumSource).filter(CurriculumSource.context_id == contextId).all()
@@ -1383,7 +1455,7 @@ def get_dashboard_summary(contextId: str = Query(...), db: Session = Depends(get
         1 for p in plans if p.reviews and sorted(p.reviews, key=lambda r: r.created_at or utcnow(), reverse=True)[0].blockers_count > 0
     )
 
-    attention_tasks_count = plans_with_blockers + (1 if unverified_sources > 0 or not sources else 0)
+    attention_tasks_count = plans_with_blockers + (1 if (unverified_sources > 0 and len(sources) > 0) else 0)
 
     today_tasks = []
     for p in plans:
@@ -1401,7 +1473,7 @@ def get_dashboard_summary(contextId: str = Query(...), db: Session = Depends(get
                             "targetRoute": f"/daily-plan?planId={p.id}",
                         }
                     )
-    if unverified_sources > 0 or not sources:
+    if unverified_sources > 0 and len(sources) > 0:
         today_tasks.append(
             {
                 "id": "task_source_verify",
@@ -1412,16 +1484,17 @@ def get_dashboard_summary(contextId: str = Query(...), db: Session = Depends(get
                 "targetRoute": "/sources",
             }
         )
-    today_tasks.append(
-        {
-            "id": "task_prepare_pptx",
-            "title": "جهّز عرضًا قابلًا للتحرير",
-            "subtitle": "بعد استكمال المراجعة · مسودة عرض من 5 شرائح قابلة للتحرير",
-            "badge": "لاحقًا",
-            "badgeType": "neutral",
-            "targetRoute": "/presentations",
-        }
-    )
+    if len(plans) > 0:
+        today_tasks.append(
+            {
+                "id": "task_prepare_pptx",
+                "title": "جهّز عرضًا قابلًا للتحرير",
+                "subtitle": "بعد استكمال المراجعة · مسودة عرض من 5 شرائح قابلة للتحرير",
+                "badge": "لاحقًا",
+                "badgeType": "neutral",
+                "targetRoute": "/presentations",
+            }
+        )
 
     return {
         "context": serialize_context(ctx),
@@ -1590,14 +1663,24 @@ def create_export_task(
             .first()
         )
         if pver:
-            plan_snap = dict(pver.plan_payload)
+            plan_snap = dict(pver.plan_payload or {})
             plan_snap["version"] = pver.version_number
-            plan_snap["status"] = pver.status_at_save
+            plan_snap["status"] = pln.status if pln.version == pver.version_number else pver.status_at_save
+            plan_snap["approvedBy"] = pln.approved_by or (ctx.teacher_name if ctx else "")
+            if not plan_snap.get("teacherName"):
+                plan_snap["teacherName"] = pln.teacher_name or (ctx.teacher_name if ctx else "")
             context_snap = dict(pver.context_snapshot or ctx.snapshot_dict())
+            if not context_snap.get("teacherName"):
+                context_snap["teacherName"] = ctx.teacher_name if ctx else ""
             plan_ver_num = pver.version_number
         else:
             plan_snap = serialize_plan(pln)
+            plan_snap["approvedBy"] = pln.approved_by or (ctx.teacher_name if ctx else "")
+            if not plan_snap.get("teacherName"):
+                plan_snap["teacherName"] = pln.teacher_name or (ctx.teacher_name if ctx else "")
             context_snap = dict(pln.context_snapshot or ctx.snapshot_dict())
+            if not context_snap.get("teacherName"):
+                context_snap["teacherName"] = ctx.teacher_name if ctx else ""
             plan_ver_num = pln.version
 
         rev = (
@@ -1783,3 +1866,10 @@ def download_exported_file(
             "X-Plan-Version": str(task.plan_version),
         },
     )
+
+
+if __name__ == "__main__":
+    import uvicorn
+    host = os.getenv("HOST", "0.0.0.0")
+    port = int(os.getenv("PORT", "8000"))
+    uvicorn.run("backend.app.main:app", host=host, port=port, reload=True)

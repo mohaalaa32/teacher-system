@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from ..models import EducationalContext, PhaseTemplate, CurriculumSource, Lesson, Plan, PlanVersion, PlanReview
 from .audit_service import audit_plan_and_context
+import os
 import hashlib
 import json
 
@@ -158,17 +159,15 @@ def get_interactive_class_flow_phases():
     ]
 
 
-def ensure_initial_seed_data(db: Session):
+def ensure_initial_seed_data(db: Session, force: bool = False):
     """
-    Seeds two isolated contexts if the database is empty:
-    1. Context 1: The illustrative reference example from the screenshots
-       (الرياضيات · الصف الأول المتوسط · العراق) with unverified illustrative lessons & plans
-       matching the screenshots (`درس تجريبي أ`, `درس تجريبي ب`, `درس تجريبي ج`, 5-day plan, etc.)
-       so the UI works out-of-the-box and matches the visual reference while clearly marking
-       examples as `مثال توضيحي غير موثق من الكتاب` and keeping unknown year/edition empty!
-    2. Context 2: A second isolated context for another subject (`اللغة العربية والأدب` · `الصف الثاني المتوسط` · `العراق`)
-       to demonstrate multi-context isolation and non-math subject support out of the box.
+    Seeds demo illustrative data ONLY if explicitly enabled via ENABLE_DEMO_SEED="1" environment variable,
+    or when called with force=True in automated test suites.
+    By default, the system starts clean and empty so the user can enter their own name and context.
     """
+    if not force and os.getenv("ENABLE_DEMO_SEED", "0").lower() not in ("1", "true"):
+        return
+
     existing = db.query(EducationalContext).first()
     if existing:
         return

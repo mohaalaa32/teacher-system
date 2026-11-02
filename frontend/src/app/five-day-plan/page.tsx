@@ -26,28 +26,18 @@ export default function FiveDayPlanPage() {
             dayNumber: i + 1,
             dayName: dName,
             isHoliday: false,
-            lessonTitle: i === 0 ? lRes.items?.[0]?.title || "درس تجريبي أ" : "",
+            lessonTitle: i === 0 ? lRes.items?.[0]?.title || (activeContext ? `درس 1 — ${activeContext.subject}` : "درس 1") : "",
             objectives: i === 0 ? "تحقيق أهداف اليوم الأول" : "",
             activities: "سبورة وأقلام ملوّنة وبطاقات",
             assessment: i === 0 ? "ملاحظة أداء المتعلمين" : "",
             minutes: activeContext?.defaultPeriodMinutes || 45,
           }));
-        found = await apiFetch("/api/plans", {
-          method: "POST",
-          body: JSON.stringify({
-            contextId: activeContextId,
-            title: `خطة خمسة أيام — ${activeContext?.subject || "المادة"}`,
-            planType: "five_day",
-            periodMinutes: activeContext?.defaultPeriodMinutes || 45,
-            periodsCount: 1,
-            objectives: ["توزيع حصص مرن لخمسة أيام تدريس متميزة."],
-            formativeAssessment: "متابعة التقويم اليومي لخمسة أيام تدريس.",
-            scheduleDays: defaultDays,
-          }),
-        });
+        setPlan(null);
+        setDays(defaultDays);
+      } else {
+        setPlan(found);
+        setDays(found.scheduleDays || []);
       }
-      setPlan(found);
-      setDays(found.scheduleDays || []);
     } catch (e) {
       console.error(e);
     }
@@ -64,19 +54,37 @@ export default function FiveDayPlanPage() {
   const totalMinutes = days.reduce((acc, d) => acc + (Number(d.minutes) || 45), 0);
 
   const handleSaveFiveDayPlan = async () => {
-    if (!plan) return;
     try {
-      const updated = await apiFetch(`/api/plans/${plan.id}`, {
-        method: "PUT",
-        body: JSON.stringify({
-          ...plan,
-          scheduleDays: days,
-          expectedVersion: plan.version,
-        }),
-      });
-      setPlan(updated);
-      setDays(updated.scheduleDays || []);
-      setFeedback(`تم حفظ خطة الخمسة أيام (الإصدار v${updated.version}) بنجاح.`);
+      if (plan && plan.id) {
+        const updated = await apiFetch(`/api/plans/${plan.id}`, {
+          method: "PUT",
+          body: JSON.stringify({
+            ...plan,
+            scheduleDays: days,
+            expectedVersion: plan.version,
+          }),
+        });
+        setPlan(updated);
+        setDays(updated.scheduleDays || []);
+        setFeedback(`تم حفظ خطة الخمسة أيام (الإصدار v${updated.version}) بنجاح.`);
+      } else {
+        const created = await apiFetch("/api/plans", {
+          method: "POST",
+          body: JSON.stringify({
+            contextId: activeContextId,
+            title: `خطة خمسة أيام — ${activeContext?.subject || "المادة"}`,
+            planType: "five_day",
+            periodMinutes: activeContext?.defaultPeriodMinutes || 45,
+            periodsCount: 1,
+            objectives: ["توزيع حصص مرن لخمسة أيام تدريس متميزة."],
+            formativeAssessment: "متابعة التقويم اليومي لخمسة أيام تدريس.",
+            scheduleDays: days,
+          }),
+        });
+        setPlan(created);
+        setDays(created.scheduleDays || []);
+        setFeedback("تم إنشاء وحفظ خطة الخمسة أيام بنجاح.");
+      }
     } catch (err: any) {
       setFeedback(err.message);
     }

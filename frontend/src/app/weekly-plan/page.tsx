@@ -26,7 +26,7 @@ export default function WeeklyPlanPage() {
           ...sDays.map((dName, idx) => ({
             dayName: dName,
             isHoliday: false,
-            lessonTitle: `حصة ${dName} — ${activeContext?.subject}`,
+            lessonTitle: `حصة ${dName} — ${activeContext?.subject || "الدرس"}`,
             linkedDailyPlanId: dRes.items?.[idx]?.id || "",
             activities: "التهيئة والتدريس والتدريب",
             assessment: "تقويم تكويني يومي",
@@ -42,22 +42,12 @@ export default function WeeklyPlanPage() {
             minutes: 0,
           })),
         ];
-        found = await apiFetch("/api/plans", {
-          method: "POST",
-          body: JSON.stringify({
-            contextId: activeContextId,
-            title: `الخطة الأسبوعية — ${activeContext?.subject || "المادة"}`,
-            planType: "weekly",
-            periodMinutes: activeContext?.defaultPeriodMinutes || 45,
-            periodsCount: 1,
-            objectives: ["توزيع دروس الأسبوع على أيام الدوام الفعلية مع مراعاة العطل."],
-            formativeAssessment: "بطاقات خروج يومية وملاحظة أداء الطلاب.",
-            scheduleDays: builtDays,
-          }),
-        });
+        setPlan(null);
+        setDays(builtDays);
+      } else {
+        setPlan(found);
+        setDays(found.scheduleDays || []);
       }
-      setPlan(found);
-      setDays(found.scheduleDays || []);
     } catch (e) {
       console.error(e);
     }
@@ -82,19 +72,37 @@ export default function WeeklyPlanPage() {
   };
 
   const handleSaveWeekly = async () => {
-    if (!plan) return;
     try {
-      const updated = await apiFetch(`/api/plans/${plan.id}`, {
-        method: "PUT",
-        body: JSON.stringify({
-          ...plan,
-          scheduleDays: days,
-          expectedVersion: plan.version,
-        }),
-      });
-      setPlan(updated);
-      setDays(updated.scheduleDays || []);
-      setFeedback(`تم حفظ الخطة الأسبوعية (الإصدار v${updated.version}) وحساب مجموع الزمن (${totalWeeklyMinutes} دقيقة).`);
+      if (plan && plan.id) {
+        const updated = await apiFetch(`/api/plans/${plan.id}`, {
+          method: "PUT",
+          body: JSON.stringify({
+            ...plan,
+            scheduleDays: days,
+            expectedVersion: plan.version,
+          }),
+        });
+        setPlan(updated);
+        setDays(updated.scheduleDays || []);
+        setFeedback(`تم حفظ الخطة الأسبوعية (الإصدار v${updated.version}) وحساب مجموع الزمن (${totalWeeklyMinutes} دقيقة).`);
+      } else {
+        const created = await apiFetch("/api/plans", {
+          method: "POST",
+          body: JSON.stringify({
+            contextId: activeContextId,
+            title: `الخطة الأسبوعية — ${activeContext?.subject || "المادة"}`,
+            planType: "weekly",
+            periodMinutes: activeContext?.defaultPeriodMinutes || 45,
+            periodsCount: 1,
+            objectives: ["توزيع دروس الأسبوع على أيام الدوام الفعلية مع مراعاة العطل."],
+            formativeAssessment: "بطاقات خروج يومية وملاحظة أداء الطلاب.",
+            scheduleDays: days,
+          }),
+        });
+        setPlan(created);
+        setDays(created.scheduleDays || []);
+        setFeedback(`تم إنشاء وحفظ الخطة الأسبوعية وحساب مجموع الزمن (${totalWeeklyMinutes} دقيقة).`);
+      }
     } catch (err: any) {
       setFeedback(err.message);
     }

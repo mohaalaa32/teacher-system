@@ -150,10 +150,10 @@ def generate_plan_docx_bytes(
                 [
                     str(idx),
                     f"الحصة {ph.get('periodNumber', 1)}",
-                    str(ph.get("phaseName", "")),
-                    f"{ph.get('materials', '')} ({ph.get('sourceRef', 'المقرّر')})",
-                    str(ph.get("teacherActivity") or ph.get("executorRole") or ""),
-                    str(ph.get("studentActivity") or ""),
+                    str(ph.get("phaseName") or ph.get("name") or ""),
+                    f"{ph.get('materials', '') or ph.get('pedagogicalAids', '')} ({ph.get('sourceRef', 'المقرّر')})",
+                    str(ph.get("teacherActivity") or ph.get("executorRole") or ph.get("teacherRole") or ""),
+                    str(ph.get("studentActivity") or ph.get("studentRole") or ""),
                     str(ph.get("objective") or ""),
                     f"{ph.get('minutes', 0)} د",
                 ]
@@ -384,7 +384,7 @@ def generate_plan_pptx_bytes(
             {
                 "title": "ناقش طريقة التفكير والتمثيل",
                 "content": "\n".join(
-                    f"• {p.get('phaseName', 'مرحلة')}: {p.get('teacherActivity', '')} ({p.get('minutes', 0)} د)"
+                    f"• {p.get('phaseName') or p.get('name') or 'مرحلة'}: {p.get('teacherActivity') or p.get('teacherRole') or ''} ({p.get('minutes', 0)} د)"
                     for p in phases[:3]
                 )
                 or "أدخل مهمة مناسبة للمادة بعد مراجعة المصدر، ثم اطلب من الطلاب تفسير خطواتهم.",
@@ -392,7 +392,7 @@ def generate_plan_pptx_bytes(
             {
                 "title": "التدريب ومقارنة الاستراتيجيات",
                 "content": "\n".join(
-                    f"• {p.get('phaseName', 'مرحلة')}: {p.get('studentActivity', '')} ({p.get('minutes', 0)} د)"
+                    f"• {p.get('phaseName') or p.get('name') or 'مرحلة'}: {p.get('studentActivity') or p.get('studentRole') or ''} ({p.get('minutes', 0)} د)"
                     for p in phases[2:]
                 )
                 or f"مراعاة الفروق الفردية: {plan_snap.get('differentiation') or 'تقديم دعم بصري وتدريج المهام.'}",
@@ -613,9 +613,9 @@ def generate_plan_pdf_bytes(
                 lines_to_render.append(
                     {
                         "text": (
-                            f"[{idx}] (الحصة {ph.get('periodNumber', 1)}) {ph.get('phaseName', '')} — "
-                            f"المعلم: {ph.get('teacherActivity') or ph.get('executorRole') or ''} | "
-                            f"المتعلم: {ph.get('studentActivity') or ''} | "
+                            f"[{idx}] (الحصة {ph.get('periodNumber', 1)}) {ph.get('phaseName') or ph.get('name') or ''} — "
+                            f"المعلم: {ph.get('teacherActivity') or ph.get('executorRole') or ph.get('teacherRole') or ''} | "
+                            f"المتعلم: {ph.get('studentActivity') or ph.get('studentRole') or ''} | "
                             f"الزمن: {ph.get('minutes', 0)} د"
                         ),
                         "bold": False,

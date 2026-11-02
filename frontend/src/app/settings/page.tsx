@@ -105,6 +105,9 @@ export default function PlanSettingsPage() {
           expectedVersion: activeContext.version,
         }),
       });
+      if (typeof window !== "undefined" && teacherName) {
+        window.localStorage.setItem("agy_teacher_name", teacherName);
+      }
       await refreshContexts();
       setFeedback("تم حفظ السياق التعليمي (بجميع حقوله السبعة) وإعدادات المعلم. تُطبّق الإعدادات على الخطط الجديدة دون تغيير الإصدارات السابقة بصمت.");
     } catch (err: any) {
@@ -397,12 +400,14 @@ export default function PlanSettingsPage() {
         <div>
           <div className="card">
             <h3 style={{ fontSize: "1.1rem", fontWeight: 800, marginBottom: "6px" }}>سياق الخطة</h3>
-            <div style={{ fontWeight: 800, fontSize: "1rem", marginBottom: "8px" }}>درس تجريبي أ</div>
+            <div style={{ fontWeight: 800, fontSize: "1rem", marginBottom: "8px" }}>
+              {subject ? `خطة ${subject}` : "خطة درس جديد"}
+            </div>
             <span className="badge badge-warning" style={{ marginBottom: "10px" }}>
-              تجريبي — غير موثّق
+              سياق محفوظ
             </span>
             <p style={{ fontSize: "0.82rem", color: "var(--text-secondary)", marginBottom: "12px" }}>
-              سجل منهج تجريبي
+              {curriculumName || "سياق المنهج المخصص"}
               <br />
               {subject || "—"} · {grade || "—"} · {country || "—"}
             </p>
@@ -464,7 +469,7 @@ export default function PlanSettingsPage() {
             توزيع قابل للتعديل، لا تسلسل رسمي للمنهج
           </p>
           <p style={{ fontSize: "0.82rem", color: "var(--text-main)" }}>
-            الأحد: درس تجريبي أ · الاثنين: درس تجريبي ب · الثلاثاء: درس تجريبي ج · الأربعاء والخميس: حصتان قابلتان للجدولة.
+            توزيع مرن للأيام الدراسية الخمسة بحسب جدول الحصص، مع أهداف وأنشطة وتقويم مخصص لكل يوم.
           </p>
         </div>
       </div>

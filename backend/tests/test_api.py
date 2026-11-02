@@ -5,6 +5,7 @@ import pytest
 
 # Use a clean test database for pytest
 os.environ["DATABASE_URL"] = "sqlite:///./test_teacher_system.db"
+os.environ["ENABLE_DEMO_SEED"] = "1"
 
 from backend.app.main import (
     app,
@@ -21,6 +22,7 @@ from backend.app.main import (
     download_exported_file,
 )
 from backend.app.database import Base, engine, SessionLocal
+from backend.app.services.seed_service import ensure_initial_seed_data
 from backend.app.schemas import (
     EducationalContextCreate,
     LessonCreate,
@@ -37,6 +39,11 @@ from fastapi import HTTPException
 def setup_test_db():
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
+    try:
+        ensure_initial_seed_data(db, force=True)
+    finally:
+        db.close()
     yield
     Base.metadata.drop_all(bind=engine)
 

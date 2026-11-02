@@ -22,17 +22,22 @@ export default function DashboardPage() {
         if (mounted) setLoading(false);
       }
     }
-    if (activeContextId) load();
+    if (activeContextId) {
+      load();
+    } else {
+      setLoading(false);
+      setSummary(null);
+    }
     return () => {
       mounted = false;
     };
   }, [activeContextId, apiFetch]);
 
   const stats = summary?.stats || {
-    attentionCount: 2,
-    draftsCount: 3,
-    totalPlansCount: 4,
-    reviewedCount: 2,
+    attentionCount: 0,
+    draftsCount: 0,
+    totalPlansCount: 0,
+    reviewedCount: 0,
     exportsCount: 0,
   };
 
@@ -48,7 +53,7 @@ export default function DashboardPage() {
 
       <div className="info-banner">
         <span>
-          ⓘ جميع الإحصاءات أدناه مشتقة حيًّا من قاعدة البيانات للسياق النشط ({activeContext?.id}) وليست أرقامًا ثابتة.
+          ⓘ جميع الإحصاءات أدناه مشتقة حيًّا من قاعدة البيانات للسياق النشط ({activeContext?.id || "—"}) وليست أرقامًا ثابتة.
         </span>
       </div>
 
@@ -56,13 +61,13 @@ export default function DashboardPage() {
       <div className="hero-banner-card">
         <div>
           <h2 style={{ fontSize: "1.45rem", fontWeight: 800, marginBottom: "6px" }}>
-            مرحبًا أستاذ {activeContext?.teacherName?.split("·")[0]?.trim() || "أحمد"}، لنخطّط لحصة واضحة.
+            مرحبًا {activeContext?.teacherName ? `أستاذ ${activeContext.teacherName}` : "بك"}، لنخطّط لحصة واضحة.
           </h2>
           <p style={{ fontSize: "0.9rem", color: "var(--sidebar-text)", marginBottom: "6px" }}>
             أكمل مراجعة الخطة اليومية، ثم جهّز عرضك وحزمة ملفاتك من مساحة واحدة.
           </p>
           <div style={{ fontSize: "0.78rem", color: "var(--sidebar-muted)" }}>
-            {activeContext?.teacherName || "أحمد علي"} | تاريخ التخطيط: {activeContext?.planningDate || "2026-10-11"}
+            {activeContext?.teacherName || "المعلم"} | تاريخ التخطيط: {activeContext?.planningDate || new Date().toISOString().split("T")[0]}
           </div>
         </div>
         <Link href="/daily-plan" className="btn btn-primary" style={{ backgroundColor: "#176B52", padding: "11px 22px" }}>
@@ -102,43 +107,52 @@ export default function DashboardPage() {
             ترتيب مقترح لإنهاء المسودات وفصل عوائق الاعتماد عن توثيق المصدر
           </p>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            {(summary?.todayTasks || []).map((t: any) => (
-              <div
-                key={t.id}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "12px 14px",
-                  borderRadius: "10px",
-                  border: "1px solid var(--border-subtle)",
-                  backgroundColor: "#fbfcfb",
-                  gap: "12px",
-                }}
-              >
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: "0.92rem" }}>
-                    <Link href={t.targetRoute || "/review"} style={{ color: "inherit", textDecoration: "none" }}>
-                      {t.title}
-                    </Link>
-                  </div>
-                  <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>{t.subtitle}</div>
-                </div>
-                <span
-                  className={`badge ${
-                    t.badgeType === "blocker"
-                      ? "badge-blocker"
-                      : t.badgeType === "warning"
-                      ? "badge-warning"
-                      : "badge-neutral"
-                  }`}
+          {(!summary?.todayTasks || summary.todayTasks.length === 0) ? (
+            <div style={{ textAlign: "center", padding: "26px 12px", color: "var(--text-secondary)" }}>
+              <p style={{ marginBottom: "12px", fontSize: "0.9rem" }}>لا توجد مهام معلّقة حاليًا. بيئة العمل جاهزة لإعداد أول خطة.</p>
+              <Link href="/daily-plan" className="btn btn-primary" style={{ fontSize: "0.84rem" }}>
+                + إعداد خطة درس جديدة
+              </Link>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              {summary.todayTasks.map((t: any) => (
+                <div
+                  key={t.id}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "12px 14px",
+                    borderRadius: "10px",
+                    border: "1px solid var(--border-subtle)",
+                    backgroundColor: "#fbfcfb",
+                    gap: "12px",
+                  }}
                 >
-                  {t.badge}
-                </span>
-              </div>
-            ))}
-          </div>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: "0.92rem" }}>
+                      <Link href={t.targetRoute || "/review"} style={{ color: "inherit", textDecoration: "none" }}>
+                        {t.title}
+                      </Link>
+                    </div>
+                    <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>{t.subtitle}</div>
+                  </div>
+                  <span
+                    className={`badge ${
+                      t.badgeType === "blocker"
+                        ? "badge-blocker"
+                        : t.badgeType === "warning"
+                        ? "badge-warning"
+                        : "badge-neutral"
+                    }`}
+                  >
+                    {t.badge}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="card">
@@ -187,68 +201,79 @@ export default function DashboardPage() {
         <div className="card">
           <h3 style={{ fontSize: "1.15rem", fontWeight: 800, marginBottom: "4px" }}>أحدث الخطط المحفوظة</h3>
           <p style={{ fontSize: "0.8rem", color: "var(--text-secondary)", marginBottom: "12px" }}>
-            جميع السجلات أدناه معزولة ضمن السياق النشط ({activeContext?.subject} · {activeContext?.grade})
+            جميع السجلات أدناه معزولة ضمن السياق النشط ({activeContext?.subject || "—"} · {activeContext?.grade || "—"})
           </p>
 
-          <div className="table-scroll-wrapper">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>الخطة</th>
-                  <th>النمط</th>
-                  <th>آخر تعديل</th>
-                  <th>الحالة</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(summary?.recentPlans || []).map((p: any) => (
-                  <tr key={p.id}>
-                    <td style={{ fontWeight: 700 }}>
-                      <Link
-                        href={
-                          p.planType === "five_day"
-                            ? `/five-day-plan?planId=${p.id}`
-                            : p.planType === "weekly"
-                            ? `/weekly-plan?planId=${p.id}`
-                            : `/daily-plan?planId=${p.id}`
-                        }
-                        style={{ color: "var(--text-main)", textDecoration: "none" }}
-                      >
-                        {p.title}
-                      </Link>
-                    </td>
-                    <td>
-                      {p.planType === "daily"
-                        ? "يومية"
-                        : p.planType === "weekly"
-                        ? "أسبوعية"
-                        : "خمسة أيام"}
-                    </td>
-                    <td>{p.planningDate || "—"}</td>
-                    <td>
-                      <span
-                        className={`badge ${
-                          p.status === "approved" || p.status === "reviewed"
-                            ? "badge-success"
-                            : p.status === "needs_revision"
-                            ? "badge-blocker"
-                            : "badge-neutral"
-                        }`}
-                      >
-                        {p.status === "approved"
-                          ? "معتمدة"
-                          : p.status === "reviewed"
-                          ? "مكتملة المراجعة"
-                          : p.status === "needs_revision"
-                          ? "تقويم ناقص / تحتاج تعديلًا"
-                          : "مسودة"}
-                      </span>
-                    </td>
+          {(!summary?.recentPlans || summary.recentPlans.length === 0) ? (
+            <div style={{ textAlign: "center", padding: "34px 14px", color: "var(--text-secondary)" }}>
+              <p style={{ marginBottom: "12px", fontSize: "0.92rem" }}>
+                لا توجد خطط محفوظة بعد في سياق ({activeContext?.subject || "المادة المحددة"}).
+              </p>
+              <Link href="/daily-plan" className="btn btn-primary">
+                + إنشاء أول خطة يومية
+              </Link>
+            </div>
+          ) : (
+            <div className="table-scroll-wrapper">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>الخطة</th>
+                    <th>النمط</th>
+                    <th>آخر تعديل</th>
+                    <th>الحالة</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {summary.recentPlans.map((p: any) => (
+                    <tr key={p.id}>
+                      <td style={{ fontWeight: 700 }}>
+                        <Link
+                          href={
+                            p.planType === "five_day"
+                              ? `/five-day-plan?planId=${p.id}`
+                              : p.planType === "weekly"
+                              ? `/weekly-plan?planId=${p.id}`
+                              : `/daily-plan?planId=${p.id}`
+                          }
+                          style={{ color: "var(--text-main)", textDecoration: "none" }}
+                        >
+                          {p.title}
+                        </Link>
+                      </td>
+                      <td>
+                        {p.planType === "daily"
+                          ? "يومية"
+                          : p.planType === "weekly"
+                          ? "أسبوعية"
+                          : "خمسة أيام"}
+                      </td>
+                      <td>{p.planningDate || "—"}</td>
+                      <td>
+                        <span
+                          className={`badge ${
+                            p.status === "approved" || p.status === "reviewed"
+                              ? "badge-success"
+                              : p.status === "needs_revision"
+                              ? "badge-blocker"
+                              : "badge-neutral"
+                          }`}
+                        >
+                          {p.status === "approved"
+                            ? "معتمدة"
+                            : p.status === "reviewed"
+                            ? "مكتملة المراجعة"
+                            : p.status === "needs_revision"
+                            ? "تقويم ناقص / تحتاج تعديلًا"
+                            : "مسودة"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
 
           <div style={{ marginTop: "14px" }}>
             <Link href="/daily-plan" className="btn btn-secondary">
@@ -263,75 +288,85 @@ export default function DashboardPage() {
             آخر العمليات والملفات المولّدة في هذا السياق
           </p>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            <div
-              style={{
-                padding: "10px 12px",
-                borderRadius: "8px",
-                border: "1px solid var(--border-subtle)",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <div>
-                <div style={{ fontWeight: 700, fontSize: "0.86rem" }}>مسودة خطة يومية</div>
-                <div style={{ fontSize: "0.76rem", color: "var(--text-secondary)" }}>
-                  {summary?.recentPlans?.[0]?.title || "درس تجريبي أ"} · محفوظة في قاعدة البيانات
-                </div>
-              </div>
-              <span className="badge badge-neutral">مسودة</span>
+          {(!summary?.recentPlans || summary.recentPlans.length === 0) && (!summary?.recentExports || summary.recentExports.length === 0) ? (
+            <div style={{ textAlign: "center", padding: "26px 12px", color: "var(--text-secondary)" }}>
+              <p style={{ fontSize: "0.85rem" }}>لا يوجد نشاط مسجّل بعد في هذا السياق.</p>
             </div>
-
-            <div
-              style={{
-                padding: "10px 12px",
-                borderRadius: "8px",
-                border: "1px solid var(--border-subtle)",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <div>
-                <div style={{ fontWeight: 700, fontSize: "0.86rem" }}>
-                  اختيار {activeContext?.selectedTools?.length || 4} وسائل تعليمية
-                </div>
-                <div style={{ fontSize: "0.76rem", color: "var(--text-secondary)" }}>
-                  {(activeContext?.selectedTools || []).join("، ")}
-                </div>
-              </div>
-              <span className="badge badge-success">مفعّلة</span>
-            </div>
-
-            {(summary?.recentExports || []).map((ex: any) => (
-              <div
-                key={ex.id}
-                style={{
-                  padding: "10px 12px",
-                  borderRadius: "8px",
-                  border: "1px solid var(--border-subtle)",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: "0.84rem" }}>{ex.fileName}</div>
-                  <div style={{ fontSize: "0.74rem", color: "var(--text-secondary)" }}>
-                    الإصدار v{ex.planVersion} · {(ex.fileSize / 1024).toFixed(1)} KB
-                  </div>
-                </div>
-                <a
-                  href={`/api/exports/${ex.id}/download?contextId=${encodeURIComponent(activeContextId)}`}
-                  className="badge badge-success"
-                  style={{ textDecoration: "none" }}
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              {summary?.recentPlans?.[0] && (
+                <div
+                  style={{
+                    padding: "10px 12px",
+                    borderRadius: "8px",
+                    border: "1px solid var(--border-subtle)",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
                 >
-                  تنزيل
-                </a>
-              </div>
-            ))}
-          </div>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: "0.86rem" }}>أحدث مسودة خطة</div>
+                    <div style={{ fontSize: "0.76rem", color: "var(--text-secondary)" }}>
+                      {summary.recentPlans[0].title} · محفوظة في قاعدة البيانات
+                    </div>
+                  </div>
+                  <span className="badge badge-neutral">مسودة</span>
+                </div>
+              )}
+
+              {activeContext?.selectedTools && (
+                <div
+                  style={{
+                    padding: "10px 12px",
+                    borderRadius: "8px",
+                    border: "1px solid var(--border-subtle)",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: "0.86rem" }}>
+                      اختيار {activeContext.selectedTools.length} وسائل تعليمية
+                    </div>
+                    <div style={{ fontSize: "0.76rem", color: "var(--text-secondary)" }}>
+                      {activeContext.selectedTools.join("، ")}
+                    </div>
+                  </div>
+                  <span className="badge badge-success">مفعّلة</span>
+                </div>
+              )}
+
+              {(summary?.recentExports || []).map((ex: any) => (
+                <div
+                  key={ex.id}
+                  style={{
+                    padding: "10px 12px",
+                    borderRadius: "8px",
+                    border: "1px solid var(--border-subtle)",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: "0.84rem" }}>{ex.fileName}</div>
+                    <div style={{ fontSize: "0.74rem", color: "var(--text-secondary)" }}>
+                      الإصدار v{ex.planVersion} · {(ex.fileSize / 1024).toFixed(1)} KB
+                    </div>
+                  </div>
+                  <a
+                    href={`/api/exports/${ex.id}/download?contextId=${encodeURIComponent(activeContextId)}`}
+                    className="badge badge-success"
+                    style={{ textDecoration: "none" }}
+                  >
+                    تنزيل
+                  </a>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

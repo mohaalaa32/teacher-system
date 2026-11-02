@@ -6,8 +6,8 @@ import { useTeacherApp, WorkflowStepper } from "../../components/AppShell";
 
 export default function ReportsPage() {
   const { activeContext, activeContextId, apiFetch } = useTeacherApp();
-  const [dateFrom, setDateFrom] = useState<string>("2026-10-01");
-  const [dateTo, setDateTo] = useState<string>("2026-10-31");
+  const [dateFrom, setDateFrom] = useState<string>("");
+  const [dateTo, setDateTo] = useState<string>("");
   const [planTypeFilter, setPlanTypeFilter] = useState<string>("all");
   const [report, setReport] = useState<any>(null);
   const [exporting, setExporting] = useState<string>("");

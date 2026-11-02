@@ -122,72 +122,92 @@ export default function CurriculumPage() {
       {/* Main Split matching `المنهج.png`: Source Cards (Right/Main) & Selected Source Details (Left) */}
       <div className="main-split-grid">
         <div>
-          {filteredSources.map((src) => {
-            const isSelected = selectedSource?.id === src.id;
-            return (
-              <div
-                key={src.id}
-                onClick={() => setSelectedSourceId(src.id)}
-                className="card"
-                style={{
-                  borderColor: isSelected ? "var(--primary-green)" : "var(--border-color)",
-                  borderWidth: isSelected ? "2px" : "1px",
-                  cursor: "pointer",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "stretch",
-                  gap: "18px",
-                  flexWrap: "wrap",
-                }}
-              >
-                <div style={{ flex: 1, minWidth: "220px" }}>
-                  <div style={{ display: "flex", gap: "8px", marginBottom: "10px", flexWrap: "wrap" }}>
-                    <span
-                      className={`badge ${
-                        src.verificationStatus === "human_verified" ? "badge-success" : "badge-warning"
-                      }`}
-                    >
-                      {src.verificationStatus === "human_verified" ? "موثّق — معتمد" : "تجريبي — غير موثّق"}
-                    </span>
-                    {isSelected && <span className="badge badge-success">تم الاختيار · حالة مرئية</span>}
-                  </div>
-                  <h2 style={{ fontSize: "1.3rem", fontWeight: 800, marginBottom: "6px" }}>{src.title}</h2>
-                  <p style={{ fontSize: "0.86rem", color: "var(--text-secondary)", marginBottom: "10px" }}>
-                    {src.reviewNotes || "سجل مخصّص لتوضيح رحلة التخطيط، وليس نسخة من كتاب رسمي."}
-                  </p>
-                  <div style={{ fontSize: "0.82rem", fontWeight: 700, marginBottom: "4px" }}>
-                    {activeContext?.subject} · {activeContext?.grade} · {activeContext?.country}
-                  </div>
-                  <div style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>
-                    {src.pageCount > 0
-                      ? `ملف PDF مرفوع (${src.pageCount} صفحات) · البصمة: ${src.sha256Fingerprint?.slice(0, 12)}...`
-                      : "بيانات المصدر غير مكتملة — بانتظار رفع الكتاب أو اعتماد الفهرس"}
-                  </div>
-                </div>
-
-                {/* Book Cover Tile matching `المنهج.png` */}
+          {sources.length === 0 ? (
+            <div className="card" style={{ textAlign: "center", padding: "40px 16px" }}>
+              <div style={{ fontSize: "2rem", marginBottom: "8px" }}>📖</div>
+              <h2 style={{ fontSize: "1.2rem", fontWeight: 800, marginBottom: "8px" }}>
+                لا يوجد كتاب منهج مرفوع بعد في سياق ({activeContext?.subject || "المادة"})
+              </h2>
+              <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "16px" }}>
+                ارفع ملف PDF لكتاب المنهج لتوثيق الفصول والصفحات واستخراج الأهداف والدروس.
+              </p>
+              <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
+                <Link href="/sources" className="btn btn-primary">
+                  + رفع كتاب المنهج (PDF)
+                </Link>
+                <Link href="/lessons" className="btn btn-secondary">
+                  إضافة درس يدويًا ←
+                </Link>
+              </div>
+            </div>
+          ) : (
+            filteredSources.map((src) => {
+              const isSelected = selectedSource?.id === src.id;
+              return (
                 <div
+                  key={src.id}
+                  onClick={() => setSelectedSourceId(src.id)}
+                  className="card"
                   style={{
-                    width: "145px",
-                    backgroundColor: "var(--sidebar-bg)",
-                    color: "#fff",
-                    borderRadius: "12px",
-                    padding: "18px 14px",
+                    borderColor: isSelected ? "var(--primary-green)" : "var(--border-color)",
+                    borderWidth: isSelected ? "2px" : "1px",
+                    cursor: "pointer",
                     display: "flex",
-                    flexDirection: "column",
                     justifyContent: "space-between",
-                    textAlign: "center",
+                    alignItems: "stretch",
+                    gap: "18px",
+                    flexWrap: "wrap",
                   }}
                 >
-                  <div style={{ fontSize: "1.4rem" }}>📖</div>
-                  <div style={{ fontWeight: 800, fontSize: "1rem" }}>{src.title}</div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--sidebar-muted)" }}>
-                    {activeContext?.grade} · {src.verificationStatus === "human_verified" ? "موثّق" : "غير موثّق"}
+                  <div style={{ flex: 1, minWidth: "220px" }}>
+                    <div style={{ display: "flex", gap: "8px", marginBottom: "10px", flexWrap: "wrap" }}>
+                      <span
+                        className={`badge ${
+                          src.verificationStatus === "human_verified" ? "badge-success" : "badge-warning"
+                        }`}
+                      >
+                        {src.verificationStatus === "human_verified" ? "موثّق — معتمد" : "تجريبي — غير موثّق"}
+                      </span>
+                      {isSelected && <span className="badge badge-success">تم الاختيار · حالة مرئية</span>}
+                    </div>
+                    <h2 style={{ fontSize: "1.3rem", fontWeight: 800, marginBottom: "6px" }}>{src.title}</h2>
+                    <p style={{ fontSize: "0.86rem", color: "var(--text-secondary)", marginBottom: "10px" }}>
+                      {src.reviewNotes || "سجل مخصّص لتوضيح رحلة التخطيط، وليس نسخة من كتاب رسمي."}
+                    </p>
+                    <div style={{ fontSize: "0.82rem", fontWeight: 700, marginBottom: "4px" }}>
+                      {activeContext?.subject} · {activeContext?.grade} · {activeContext?.country}
+                    </div>
+                    <div style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>
+                      {src.pageCount > 0
+                        ? `ملف PDF مرفوع (${src.pageCount} صفحات) · البصمة: ${src.sha256Fingerprint?.slice(0, 12)}...`
+                        : "بيانات المصدر غير مكتملة — بانتظار رفع الكتاب أو اعتماد الفهرس"}
+                    </div>
+                  </div>
+
+                  {/* Book Cover Tile matching `المنهج.png` */}
+                  <div
+                    style={{
+                      width: "145px",
+                      backgroundColor: "var(--sidebar-bg)",
+                      color: "#fff",
+                      borderRadius: "12px",
+                      padding: "18px 14px",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                      textAlign: "center",
+                    }}
+                  >
+                    <div style={{ fontSize: "1.4rem" }}>📖</div>
+                    <div style={{ fontWeight: 800, fontSize: "1rem" }}>{src.title}</div>
+                    <div style={{ fontSize: "0.75rem", color: "var(--sidebar-muted)" }}>
+                      {activeContext?.grade} · {src.verificationStatus === "human_verified" ? "موثّق" : "غير موثّق"}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
 
           {/* What Transfers to Your Plan Card matching `المنهج.png` */}
           <div className="card">

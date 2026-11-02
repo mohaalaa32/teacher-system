@@ -37,7 +37,7 @@ export default function DailyPlanPage() {
   const [exportingFmt, setExportingFmt] = useState<string>("");
 
   // Editable Plan Fields
-  const [title, setTitle] = useState<string>("درس تجريبي أ");
+  const [title, setTitle] = useState<string>("خطة درس يومي");
   const [primaryLessonId, setPrimaryLessonId] = useState<string>("");
   const [secondaryLessonId, setSecondaryLessonId] = useState<string>("");
   const [lessonsCount, setLessonsCount] = useState<number>(1);
@@ -61,14 +61,22 @@ export default function DailyPlanPage() {
         apiFetch(`/api/templates?contextId=${encodeURIComponent(activeContextId)}`),
       ]);
       const pList = pRes.items || [];
+      const tList = tRes.items || [];
       setPlans(pList);
       setLessons(lRes.items || []);
-      setTemplates(tRes.items || []);
+      setTemplates(tList);
 
-      const targetId = keepPlanId || selectedPlanId || "pln_daily_demo_a";
-      const found = pList.find((x: any) => x.id === targetId) || pList[0];
+      const targetId = keepPlanId || selectedPlanId || (pList[0] && pList[0].id) || "";
+      const found = pList.find((x: any) => x.id === targetId) || (pList.length > 0 ? pList[0] : null);
       if (found) {
         bindPlanToForm(found);
+      } else {
+        // Initialize fresh plan for this context
+        setSelectedPlanId("");
+        setTitle(activeContext ? `خطة درس — ${activeContext.subject}` : "خطة درس جديد");
+        if (tList[0]?.phases) {
+          setPhases(tList[0].phases);
+        }
       }
     } catch (e) {
       console.error(e);
@@ -269,7 +277,7 @@ export default function DailyPlanPage() {
           </button>
           <span className={`badge ${!formativeAssessment.trim() || timeDiff !== 0 ? "badge-warning" : "badge-success"}`}>
             {!formativeAssessment.trim()
-              ? "مسودة تجريبية · تقويم ناقص"
+              ? "مسودة قيد الإعداد · تقويم ناقص"
               : timeDiff !== 0
               ? `تعارض وقت (${inClassSum}/${totalAllocated} د)`
               : `مكتملة الأركان · الإصدار v${planVersion}`}
@@ -277,28 +285,30 @@ export default function DailyPlanPage() {
         </div>
 
         <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-          <select
-            aria-label="اختيار خطة يومية محفوظة"
-            className="form-select"
-            style={{ width: "auto" }}
-            value={selectedPlanId}
-            onChange={(e) => {
-              const found = plans.find((p) => p.id === e.target.value);
-              if (found) bindPlanToForm(found);
-            }}
-          >
-            {plans.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.title} (v{p.version})
-              </option>
-            ))}
-          </select>
+          {plans.length > 0 && (
+            <select
+              aria-label="اختيار خطة يومية محفوظة"
+              className="form-select"
+              style={{ width: "auto" }}
+              value={selectedPlanId}
+              onChange={(e) => {
+                const found = plans.find((p) => p.id === e.target.value);
+                if (found) bindPlanToForm(found);
+              }}
+            >
+              {plans.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.title} (v{p.version})
+                </option>
+              ))}
+            </select>
+          )}
         </div>
       </div>
 
       <div className="warning-banner">
         <span>
-          ⚠ سجل منهج تجريبي · تجريبي — غير موثّق. جميع صياغات الخطة أدناه أمثلة يحرّرها المعلم؛ ليست نصوصًا أو تمارين من كتاب رسمي.
+          ⚠ مادة {activeContext?.subject || "المادة المحددة"} · جميع صياغات الخطة أدناه يحرّرها المعلم لتوثيق أهداف الدرس ومراحله، ويبقى توثيق الكتاب مرتبطًا برفع ملف المنهج ومراجعته.
         </span>
       </div>
 

@@ -678,6 +678,7 @@ textarea:focus-visible {
   }
   .app-sidebar.open {
     display: flex;
+    z-index: 60;
   }
   .mobile-menu-btn {
     display: inline-flex;
